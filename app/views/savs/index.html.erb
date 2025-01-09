@@ -1,0 +1,135 @@
+<div class="container mx-4 my-4">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold mb-4">Liste des SAV</h1>
+    
+    <%= form_with(url: savs_path, method: :get, local: true, class: "bg-white p-4 rounded-lg shadow" ) do |f| %>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <%= f.label :produit, "Produit" , class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :produit, value: params[:produit],
+        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        %>
+      </div>
+      
+      <div>
+        <%= f.label :fournisseur, "Fournisseur" , class: "block text-sm font-medium text-gray-700" %>
+        <%= f.select :fournisseur, Sav::FOURNISSEURS.map { |f| [f, f] }, { include_blank: "Tous les fournisseurs" ,
+        selected: params[:fournisseur] }, {
+          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        } %>
+      </div>
+      
+      <div>
+        <%= f.label :client_nom_prenom, "Client" , class: "block text-sm font-medium text-gray-700" %>
+        <%= f.select :client_nom_prenom, options_from_collection_for_select(@clients, :id, ->(client) { "#{client.prenom}
+      #{client.nom}" }, selected: params[:client_nom_prenom]),
+        { include_blank: "Tous les clients" },
+        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+      
+      
+      <div class="md:flex md:items-end space-y-2 md:space-y-0 md:space-x-2">
+        <%= f.submit "Filtrer" ,
+        class: "w-full md:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+        <%= link_to "Réinitialiser" , savs_path,
+        class: "block text-center w-full md:w-auto bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+        %>
+      </div>
+    </div>
+    
+    <div class="mt-4 flex items-center space-x-4">
+      <div>
+        <%= f.check_box :sans_retour, { checked: params[:sans_retour]=="1" ,
+        class: "rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500" }, "1" ,
+        nil %>
+        <%= f.label :sans_retour, "Sans date de retour magasin" , class: "ml-2 text-sm text-gray-700" %>
+      </div>
+      <div>
+        <%= f.check_box :sans_enlevement, { checked: params[:sans_enlevement]=="1" ,
+        class: "rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500" }, "1" ,
+        nil %>
+        <%= f.label :sans_enlevement, "Sans date d'enlèvement client" , class: "ml-2 text-sm text-gray-700" %>
+      </div>
+    </div>
+    <% end %>
+  </div>
+  
+  <!-- Action en lot pour la mise à jour des dates de retour -->
+  <div class="mb-4">
+    <%= button_to "Mettre à jour tous les SAV sans date de retour" , update_returned_today_savs_path, method: :post,
+    data: {
+      confirm: "Cette action va définir la date de retour à aujourd'hui pour tous les SAV sans date de retour. Continuer ?"
+    }, class: "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded" %>
+  </div>
+  
+  <!-- Table des SAV -->
+  <div class="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Date de dépôt</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Date de retour</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'enlèvement
+          </th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+          <th class="px-6 py-3 tex-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% if @savs.any? %>
+        <% @savs.each do |sav| %>
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <%= link_to "#{sav.client.prenom} #{sav.client.nom}" , client_path(sav.client),
+            class: "text-blue-600 hover:text-blue-900" %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <%= sav.produit %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <%= sav.fournisseur %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <%= l(sav.date_depot, format: :long) %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <%= l(sav.date_retour, format: :long) if sav.date_retour.present? %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <%= l(sav.date_enlevement, format: :long) if sav.date_enlevement.present? %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <% if sav.date_enlevement.present? %>
+            <span
+            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Terminé</span>
+            <% elsif sav.date_retour.present? %>
+            <span
+            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">En
+            attente client</span>
+            <% else %>
+            <span
+            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">En
+            cours</span>
+            <% end %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+            <%= link_to "Voir" , sav_path(sav), class: "text-blue-600 hover:text-blue-900" %>
+            <%= link_to "Modifier" , edit_sav_path(sav), class: "text-yellow-600 hover:text-yellow-900" %>
+            <%= button_to "Supprimer" , sav_path(sav), method: :delete, form: { class: "inline" }, data: {
+              confirm: "Êtes-vous sûr de vouloir supprimer ce SAV ?" }, class: "text-red-600 hover:text-red-900"
+              %>
+            </td>
+          </tr>
+          <% end %>
+          <% else %>
+          <tr>
+            <td colspan="8" class="px-6 py-4 text-center text-gray-500">Aucun SAV trouvé</td>
+          </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>

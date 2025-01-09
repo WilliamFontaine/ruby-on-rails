@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  produit: MyString
+  fournisseur: MyString
+  date_depot: 2025-01-08
+  date_retour: 2025-01-08
+  date_enlevement: 2025-01-08
+  client: one
+
+two:
+  produit: MyString
+  fournisseur: MyString
+  date_depot: 2025-01-08
+  date_retour: 2025-01-08
+  date_enlevement: 2025-01-08
+  client: two
